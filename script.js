@@ -1,13 +1,68 @@
-function searchFolder() {
-    alert("Search button clicked!");
+// Ensure the Firebase storage object is available
+let storage;
 
-    const folderName = document.getElementById('folderInput').value;
+try {
+    storage = firebase.storage();
+    firestore = firebase.firestore();
+} catch (error) {
+    console.error("Error accessing Firebase services: ", error);
+}
 
-    console.log(`Searching for folder: ${folderName}`);
+// Global variable to store folder name from 'comp' field
+let folderName = '';
 
+// Function to check if the password is valid and retrieve folder name
+function checkPassword() {
+    const password = document.getElementById('passwordInput').value.trim();
+
+    if (!password) {
+        document.getElementById('initial-error').innerHTML = 'Please enter a password.';
+        return;
+    }
+
+    // Reference to the 'passwords' collection in Firestore
+    const passwordRef = firestore.collection('passwords').doc(password);
+
+    passwordRef.get()
+        .then((doc) => {
+            if (doc.exists) {
+                folderName = doc.data().comp; // Get the 'comp' field value
+                document.getElementById('initial-page').style.display = 'none';
+                document.getElementById('choice-page').style.display = 'block';
+            } else {
+                document.getElementById('initial-error').innerHTML = 'Password not found.';
+            }
+        })
+        .catch((error) => {
+            console.error('Error fetching password:', error);
+            document.getElementById('initial-error').innerHTML = 'Error checking password.';
+        });
+}
+
+// Function to go to the download page
+function goToDownloadPage() {
+    document.getElementById('choice-page').style.display = 'none';
+    document.getElementById('download-page').style.display = 'block';
+    loadDownloadPage(); // Load files for download
+}
+
+// Function to go to the upload page
+function goToUploadPage() {
+    document.getElementById('choice-page').style.display = 'none';
+    document.getElementById('upload-page').style.display = 'block';
+}
+
+// Function to go back to the choice page
+function backToChoice() {
+    document.getElementById('download-page').style.display = 'none';
+    document.getElementById('upload-page').style.display = 'none';
+    document.getElementById('choice-page').style.display = 'block';
+}
+
+// Function to fetch and display files for download
+function loadDownloadPage() {
     if (!folderName) {
-        console.error('No folder name provided.');
-        document.getElementById('results').innerHTML = 'Please enter a folder name.';
+        document.getElementById('download-page').innerHTML = 'Folder name is required.';
         return;
     }
 
@@ -15,12 +70,10 @@ function searchFolder() {
 
     storageRef.listAll()
         .then((res) => {
-            console.log('Folder found, listing contents...');
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
+            resultsDiv.innerHTML = ''; // Clear previous results
 
             if (res.items.length === 0) {
-                console.log('No files found in this folder.');
                 resultsDiv.innerHTML = 'No files found in this folder.';
                 return;
             }
@@ -28,18 +81,16 @@ function searchFolder() {
             res.items.forEach((itemRef) => {
                 itemRef.getDownloadURL().then((url) => {
                     const fileName = itemRef.name;
-                    console.log(`Found file: ${fileName} - URL: ${url}`);
 
                     const fileLink = document.createElement('a');
                     fileLink.href = url;
                     fileLink.textContent = fileName;
                     fileLink.download = fileName;
+                    fileLink.style.display = 'block'; // Ensures each file link is on a new line
 
                     resultsDiv.appendChild(fileLink);
-                    resultsDiv.appendChild(document.createElement('br'));
                 }).catch((error) => {
                     console.error(`Error getting download URL for ${itemRef.name}:`, error);
-                    document.getElementById('results').innerHTML += `Error getting URL for ${itemRef.name}.<br>`;
                 });
             });
         })
@@ -48,3 +99,46 @@ function searchFolder() {
             document.getElementById('results').innerHTML = 'Error fetching folder contents.';
         });
 }
+
+// Function to handle drag-and-drop file uploads
+function handleDrop(event) {
+    event.preventDefault(); // Prevent default behavior (Prevent file from being opened)
+    
+    if (!folderName) {
+        document.getElementById('upload-results').innerHTML = 'Folder name is required.';
+        return;
+    }
+
+    const files = event.dataTransfer.files; // Get the files dropped by the user
+    const resultsDiv = document.getElementById('upload-results');
+    resultsDiv.innerHTML = ''; // Clear previous results
+
+    if (files.length === 0) {
+        resultsDiv.innerHTML = 'No files were dropped.';
+        return;
+    }
+
+    for (let file of files) {
+        const storageRef = storage.ref(`${folderName}/${file.name}`);
+        
+        storageRef.put(file).then((snapshot) => {
+            console.log(`Uploaded file: ${file.name}`);
+            resultsDiv.innerHTML += `<p>Uploaded file: ${file.name}</p>`;
+        }).catch((error) => {
+            console.error('Error uploading file:', error);
+            resultsDiv.innerHTML += `<p>Error uploading file: ${file.name}</p>`;
+        });
+    }
+}
+
+// Prevent default behavior for dragover and dragenter events
+document.addEventListener('dragover', (event) => {
+    event.preventDefault();
+});
+
+document.addEventListener('dragenter', (event) => {
+    event.preventDefault();
+});
+
+// Add event listener for drop event on the upload page
+document.getElementById('drop-area').addEventListener('drop', handleDrop);
