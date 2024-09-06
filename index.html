@@ -94,7 +94,7 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js';
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
-        import { getStorage, ref, uploadBytes, listAll, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
+        import { getStorage, ref, uploadBytes, listAll, getDownloadURL, deleteObject  } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
     
         const firebaseConfig = {
             apiKey: "AIzaSyDnnHjkUGjHMyCqI5MQspJHR-eJbKwvR00",
@@ -214,6 +214,12 @@ function showPage(pageId) {
     
         window.goToUploadPage = function() {
             showPage('upload-page');
+            const userComp = localStorage.getItem('userComp'); // Fetch userComp from localStorage
+            if (userComp) {
+                console.log(`Document found. Comp value: ${userComp}`);
+            } else {
+                console.error('Error: userComp not found in localStorage');
+            }
         };
     
         window.goToUsersPage = function() {
@@ -393,72 +399,88 @@ function deleteFile(itemRef) {
     
     
 function handleDrop(event) {
-            event.preventDefault();
-            const folderName = localStorage.getItem('userComp');
+    event.preventDefault();
+    const folderName = localStorage.getItem('userComp');
+    if (!folderName) {
+        document.getElementById('upload-results').innerHTML = 'Please enter a folder name.';
+        console.error('Error: No folder name found in localStorage');
+        return;
+    }
+
+    console.log('Folder Name:', folderName); // Debugging output
+
+    const files = event.dataTransfer.files;
+    const resultsDiv = document.getElementById('upload-results');
+    resultsDiv.innerHTML = '';
+
+    if (files.length === 0) {
+        resultsDiv.innerHTML = 'No files were dropped.';
+        return;
+    }
+
+    for (let file of files) {
+        const storageRef = ref(window.storage, `new data (${folderName})/${file.name}`);
+        uploadBytes(storageRef, file).then(() => {
+            resultsDiv.innerHTML += `<p>Uploaded file: ${file.name}</p>`;
+        }).catch((error) => {
+            console.error('Error uploading file:', error);
+            resultsDiv.innerHTML += `<p>Error uploading file: ${file.name}</p>`;
+        });
+    }
+}
+
+
+        // Set up event listeners
+        window.onload = function() {
+    const dropArea = document.getElementById('drop-area');
+    dropArea.addEventListener('drop', handleDrop);
+    dropArea.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy'; // Show copy cursor
+    });
+};
+
     
-            if (!folderName) {
-                document.getElementById('upload-results').innerHTML = 'Please enter a folder name.';
-                return;
-            }
-    
-            const files = event.dataTransfer.files;
-            const resultsDiv = document.getElementById('upload-results');
+function loadUsersPage() {
+    const userComp = localStorage.getItem('userComp');
+    if (!userComp) {
+        document.getElementById('user-results').innerHTML = 'User not authenticated.';
+        return;
+    }
+
+    const passwordsRef = collection(window.firestore, 'passwords');
+    const q = query(passwordsRef, where('comp', '==', userComp));
+
+    getDocs(q)
+        .then((querySnapshot) => {
+            const resultsDiv = document.getElementById('user-results');
             resultsDiv.innerHTML = '';
-    
-            if (files.length === 0) {
-                resultsDiv.innerHTML = 'No files were dropped.';
+
+            if (querySnapshot.empty) {
+                resultsDiv.innerHTML = 'No users found with the same comp value.';
                 return;
             }
-    
-            for (let file of files) {
-                const storageRef = ref(window.storage, `new data (${folderName})/${file.name}`);
-    
-                uploadBytes(storageRef, file).then(() => {
-                    console.log(`Uploaded file: ${file.name}`);
-                    resultsDiv.innerHTML += `<p>Uploaded file: ${file.name}</p>`;
-                }).catch((error) => {
-                    console.error('Error uploading file:', error);
-                    resultsDiv.innerHTML += `<p>Error uploading file: ${file.name}</p>`;
-                });
-            }
-        }
-    
-    
-        function loadUsersPage() {
-            const userComp = localStorage.getItem('userComp');
-            if (!userComp) {
-                document.getElementById('user-results').innerHTML = 'User not authenticated.';
-                return;
-            }
-    
-            const passwordsRef = collection(window.firestore, 'passwords');
-            const q = query(passwordsRef, where('comp', '==', userComp));
-    
-            getDocs(q)
-                .then((querySnapshot) => {
-                    const resultsDiv = document.getElementById('user-results');
-                    resultsDiv.innerHTML = '';
-    
-                    if (querySnapshot.empty) {
-                        resultsDiv.innerHTML = 'No users found with the same comp value.';
-                        return;
-                    }
-    
-                    querySnapshot.forEach((doc) => {
-                        const userLink = document.createElement('a');
-                        userLink.textContent = doc.id;
-                        userLink.href = '#';
-                        userLink.onclick = () => loadUserDetails(doc.id);
-    
-                        const resultItem = document.createElement('div');
-                        resultItem.appendChild(userLink);
-                        resultsDiv.appendChild(resultItem);
-                    });
-                })
-                .catch((error) => {
-                    document.getElementById('user-results').innerHTML = 'Error fetching users.';
-                });
-        }
+
+            querySnapshot.forEach((doc) => {
+                const userData = doc.data();
+                const userId = doc.id;
+                const userName = userData.name || 'No name'; // Handle potential undefined name
+
+                const userLink = document.createElement('a');
+                userLink.textContent = `${userName} (${userId})`; // Display name and user ID
+                userLink.href = '#';
+                userLink.onclick = () => loadUserDetails(userId);
+
+                const resultItem = document.createElement('div');
+                resultItem.appendChild(userLink);
+                resultsDiv.appendChild(resultItem);
+            });
+        })
+        .catch((error) => {
+            document.getElementById('user-results').innerHTML = 'Error fetching users.';
+        });
+}
+
     
         function loadUserDetails(docId) {
     localStorage.setItem('selectedUserId', docId);
@@ -517,6 +539,8 @@ function handleDrop(event) {
         window.allowDrop = function(event) {
             event.preventDefault();
         };
+
+       
     
         window.handleDrop = handleDrop;
     
