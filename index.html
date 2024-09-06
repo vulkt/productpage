@@ -18,22 +18,18 @@
     </div>
 
     <!-- Choice Page -->
-    <!-- Choice Page -->
-<div id="choice-page" style="display: none;">
-    <button id="download-button" onclick="goToDownloadPage()">Download</button>
-    <button id="upload-button" onclick="goToUploadPage()">Upload</button>
-    <button id="users-button" onclick="goToUsersPage()">Users</button>
-</div>
-
+    <div id="choice-page" style="display: none;">
+        <button id="download-button" onclick="goToDownloadPage()">Download</button>
+        <button id="upload-button" onclick="goToUploadPage()">Upload</button>
+        <button id="users-button" onclick="goToUsersPage()">Users</button>
+    </div>
 
     <!-- Download Page -->
-    <div id="download-page" class="section">
+    <div id="download-page" class="section" style="display: none;">
         <h2>Download Files</h2>
         <div id="results"></div>
         <button onclick="backToChoice()">Back</button>
     </div>
-    
-    
 
     <!-- Upload Page -->
     <div id="upload-page" style="display: none;">
@@ -42,16 +38,62 @@
         <button onclick="backToChoice()">Back</button>
     </div>
 
-   <!-- Users Page -->
-<div id="users-page" style="display: none;">
-    <div id="user-results"></div>
-    <button onclick="backToChoice()">Back</button>
+    <!-- User Page -->
+    <div id="users-page">
+        <h2>Users Page</h2>
+        <input type="text" id="user-search" placeholder="Search for users" oninput="searchUsers()" />
+        <div id="user-results"></div>
+        <button onclick="backToChoice()">Back</button>
+        <button onclick="goToAddUserPage()">Add New User</button>
+    </div>
+
+    <!-- Add User Page -->
+   <!-- Add User Page -->
+<div id="add-user-page" style="display:none;">
+    <h3>Add New User</h3>
+    <form id="add-user-form">
+        <label for="nameInput">Enter Name:</label>
+        <input type="text" id="nameInput" required><br>
+    
+        <label for="passwordInputNewUser">Password will be auto-generated:</label>
+        <input type="text" id="passwordInputNewUser" disabled><br>
+    
+        <label for="compInput">Enter Comp:</label> <!-- Add missing comp input -->
+        <input type="text" id="compInput" required><br>
+
+        <label for="orderCheckbox">Order:</label>
+        <input type="checkbox" id="orderCheckbox"><br>
+
+        <label for="downloadCheckbox">Download:</label>
+        <input type="checkbox" id="downloadCheckbox"><br>
+
+        <label for="uploadCheckbox">Upload:</label>
+        <input type="checkbox" id="uploadCheckbox"><br>
+
+        <label for="usersCheckbox">Users:</label>
+        <input type="checkbox" id="usersCheckbox"><br>
+
+        <button type="button" onclick="addNewUser()">Create User</button>
+    </form>
+    <p id="error" style="color:red;"></p> <!-- Added for error message -->
+    <p id="success" style="color:green;"></p> <!-- Added for success message -->
+    <button onclick="backToUsers()">Back to Users</button>
 </div>
 
+
+    <!-- User Details Page -->
+    <div id="user-details-page" style="display:none;">
+        <h2>User Details</h2>
+        <div id="user-details"></div>
+        <button onclick="backToUsers()">Back to Users</button>
+        <button onclick="deleteUser()">Delete User</button>
+
+      
+    </div>
     <!-- Firebase SDK and Your Script -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js';
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
         import { getStorage, ref, uploadBytes, listAll, getDownloadURL } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
     
         const firebaseConfig = {
@@ -62,7 +104,6 @@
             messagingSenderId: "541138565069",
             appId: "1:541138565069:web:e1c0971d58149b98c0f684"
         };
-
     
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
@@ -72,53 +113,104 @@
         window.storage = storage;
     
         window.checkPassword = function() {
-            const password = document.getElementById('passwordInput').value.trim();
-            if (!password) {
-                document.getElementById('initial-error').innerHTML = 'Please enter a password.';
+    const password = document.getElementById('passwordInput').value.trim();
+    console.log("Password:", password);  // Log the value of password
+    if (!password) {
+        document.getElementById('initial-error').innerHTML = 'Please enter a password.';
+        return;
+    }
+
+    const passwordsRef = collection(window.firestore, 'passwords');
+    const q = query(passwordsRef, where('__name__', '==', password));
+
+    getDocs(q)
+        .then((querySnapshot) => {
+            if (querySnapshot.empty) {
+                document.getElementById('initial-error').innerHTML = 'Password not found.';
                 return;
             }
+
+            const userDoc = querySnapshot.docs[0];
+            const userComp = userDoc.data().comp;
+
+            localStorage.setItem('userComp', userComp);
+            localStorage.setItem('userDocId', userDoc.id);
+
+            showPage('choice-page');
+            updateButtonVisibility(userDoc.data());
+        })
+        .catch((error) => {
+            console.error('Error checking password:', error);
+            document.getElementById('initial-error').innerHTML = 'Error checking password.';
+        });
+};
+
     
-            console.log(`Entered password: ${password}`);
+        // Updated searchUsers to search both 'comp' and 'name' fields
+        window.searchUsers = function() {
+    const searchTerm = document.getElementById('user-search').value.trim().toLowerCase();
+    const userComp = localStorage.getItem('userComp');
+    const passwordsRef = collection(window.firestore, 'passwords');
+    const q = query(passwordsRef, where('comp', '==', userComp)); // Assuming we filter by comp first
+
+    getDocs(q)
+        .then((querySnapshot) => {
+            const resultsDiv = document.getElementById('user-results');
+            resultsDiv.innerHTML = '';
+
+            if (querySnapshot.empty) {
+                resultsDiv.innerHTML = 'No users found with the same comp value.';
+                return;
+            }
+
+            // Filter users based on the search term for both document ID and name field
+            querySnapshot.forEach((doc) => {
+                const userId = doc.id.toLowerCase();
+                const userName = doc.data().name ? doc.data().name.toLowerCase() : ''; // Handling potential undefined name
+                
+                if (userId.includes(searchTerm) || userName.includes(searchTerm)) {
+                    const userLink = document.createElement('a');
+                    userLink.textContent = `${doc.data().name} (${doc.id})`; // Display name and user ID
+                    userLink.href = '#';
+                    userLink.onclick = () => loadUserDetails(doc.id);
+
+                    const resultItem = document.createElement('div');
+                    resultItem.appendChild(userLink);
+                    resultsDiv.appendChild(resultItem);
+                }
+            });
+
+            // If no users match the search term
+            if (resultsDiv.innerHTML === '') {
+                resultsDiv.innerHTML = 'No users found.';
+            }
+        })
+        .catch((error) => {
+            document.getElementById('user-results').innerHTML = 'Error fetching users.';
+        });
+};
+
+
+    // Function to navigate to the "Add New User" page
+  
     
-            const passwordsRef = collection(window.firestore, 'passwords');
-            const q = query(passwordsRef, where('__name__', '==', password));
+function showPage(pageId) {
+        const pages = ['initial-page', 'choice-page', 'download-page', 'upload-page', 'users-page', 'user-details-page', 'add-user-page'];
+        pages.forEach(page => document.getElementById(page).style.display = 'none');
+        document.getElementById(pageId).style.display = 'block';
+    }
+
     
-            getDocs(q)
-                .then((querySnapshot) => {
-                    if (querySnapshot.empty) {
-                        console.log('Password not found in Firestore.');
-                        document.getElementById('initial-error').innerHTML = 'Password not found.';
-                        return;
-                    }
-    
-                    const userDoc = querySnapshot.docs[0];
-                    const userComp = userDoc.data().comp;
-                    console.log(`Document found. Comp value: ${userComp}`);
-    
-                    localStorage.setItem('userComp', userComp);
-                    localStorage.setItem('userDocId', userDoc.id); // Store document ID
-                    showPage('choice-page');
-                    updateButtonVisibility(userDoc.data()); // Update button visibility based on user's document data
-                })
-                .catch((error) => {
-                    console.error('Error fetching password:', error);
-                    document.getElementById('initial-error').innerHTML = 'Error checking password.';
-                });
-        };
-    
-        function showPage(pageId) {
-            document.getElementById('initial-page').style.display = 'none';
-            document.getElementById('choice-page').style.display = 'none';
-            document.getElementById('download-page').style.display = 'none';
-            document.getElementById('upload-page').style.display = 'none';
-            document.getElementById('users-page').style.display = 'none';
-            document.getElementById(pageId).style.display = 'block';
+        function updateButtonVisibility(userData) {
+            document.getElementById('download-button').style.display = userData.download ? 'inline-block' : 'none';
+            document.getElementById('upload-button').style.display = userData.upload ? 'inline-block' : 'none';
+            document.getElementById('users-button').style.display = userData.users ? 'inline-block' : 'none';
         }
     
         window.goToDownloadPage = function() {
-    showPage('download-page');
-    searchFolder(); // Call searchFolder when navigating to the download page
-};
+         showPage('download-page');
+            searchFolder();
+        };
     
         window.goToUploadPage = function() {
             showPage('upload-page');
@@ -126,22 +218,121 @@
     
         window.goToUsersPage = function() {
             showPage('users-page');
-            loadUsersPage(); // Load users when navigating to the users page
+            loadUsersPage();
         };
     
         window.backToChoice = function() {
             showPage('choice-page');
         };
+
+        window.backToUsers = function() {
+    showPage('users-page');
+    loadUsersPage(); // Reload the users list after adding
+};
+
+
+        window.goToAddUserPage = function() {
+            showPage('add-user-page');
+        };
+
+        window.addNewUser = function() {
+    const nameInput = document.getElementById('nameInput').value.trim();
+    const comp = localStorage.getItem('userComp'); // Use logged-in user's comp
+    const order = document.getElementById('orderCheckbox').checked;
+    const download = document.getElementById('downloadCheckbox').checked;
+    const upload = document.getElementById('uploadCheckbox').checked;
+    const users = document.getElementById('usersCheckbox').checked;
+
+    if (!nameInput) {
+        document.getElementById('error').innerHTML = 'Please enter a name.';
+        return;
+    }
+
+    const newPassword = generateUniquePassword(); // Generate a 6-digit password
+
+    const newUserRef = doc(window.firestore, 'passwords', newPassword.toString());
+setDoc(newUserRef, {
+    name: nameInput,
+    comp: comp, // Automatically use current user's comp
+    order: order,
+    download: download,
+    upload: upload,
+    users: users
+})
+.then(() => {
+    document.getElementById('success').innerHTML = `User added successfully. Generated password: ${newPassword}`;
+})
+.catch((error) => {
+    document.getElementById('error').innerHTML = 'Error adding user.';
+    console.error('Error adding user:', error);
+});
+};
+
     
-        function updateButtonVisibility(userData) {
-            const downloadVisible = userData.download;
-            const uploadVisible = userData.upload;
-            const usersVisible = userData.users;
-    
-            document.getElementById('download-button').style.display = downloadVisible ? 'inline-block' : 'none';
-            document.getElementById('upload-button').style.display = uploadVisible ? 'inline-block' : 'none';
-            document.getElementById('users-button').style.display = usersVisible ? 'inline-block' : 'none';
-        }
+
+        window.loadUserDetails = function(userId) {
+            const userRef = doc(window.firestore, 'passwords', userId);
+
+            getDoc(userRef)
+                .then((docSnap) => {
+                    if (docSnap.exists()) {
+                        const userData = docSnap.data();
+                        document.getElementById('user-details').innerHTML = `
+                            <p><strong>Name:</strong> ${userData.name}</p>
+                            <p><strong>Order:</strong> ${userData.order}</p>
+                            <p><strong>Download:</strong> ${userData.download}</p>
+                            <p><strong>Upload:</strong> ${userData.upload}</p>
+                            <p><strong>Users:</strong> ${userData.users}</p>
+                        `;
+                        showPage('user-details-page');
+                    } else {
+                        document.getElementById('user-details').innerHTML = 'User not found.';
+                    }
+                })
+                .catch((error) => {
+                    document.getElementById('user-details').innerHTML = 'Error fetching user details.';
+                });
+        };
+
+        window.generateUniquePassword = function() {
+            // Generate a new 6-digit unique password
+            const min = 100000;
+            const max = 999999;
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+
+        window.showPage = function(pageId) {
+            document.querySelectorAll('.section, #initial-page').forEach((section) => {
+                section.style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'block';
+        };
+
+        window.updateButtonVisibility = function(userData) {
+            const { order, download, upload, users } = userData;
+            document.getElementById('download-button').style.display = download ? 'block' : 'none';
+            document.getElementById('upload-button').style.display = upload ? 'block' : 'none';
+            document.getElementById('users-button').style.display = users ? 'block' : 'none';
+        };
+
+        window.deleteUser = function() {
+    const userId = localStorage.getItem('selectedUserId');
+    if (!userId) {
+        alert('No user selected.');
+        return;
+    }
+
+    const userRef = doc(window.firestore, 'passwords', userId);
+    deleteDoc(userRef)
+        .then(() => {
+            alert('User deleted successfully.');
+            backToUsers(); // Navigate back to the users page
+        })
+        .catch((error) => {
+            alert('Error deleting user: ' + error.message);
+            console.error('Error deleting user:', error);
+        });
+};
     
         function searchFolder() {
     const folderName = localStorage.getItem('userComp');
@@ -150,68 +341,58 @@
         return;
     }
 
-    console.log(`Searching in folder: ${folderName}`); // Log the folder name
-
     const storageRef = ref(window.storage, folderName);
-
     listAll(storageRef)
         .then((res) => {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '';
 
             if (res.items.length === 0) {
-                console.log('No files found in this folder.'); // Log if no files are found
                 resultsDiv.innerHTML = 'No files found in this folder.';
                 return;
             }
 
             res.items.forEach((itemRef) => {
                 getDownloadURL(itemRef).then((url) => {
-                    console.log(`Found file: ${itemRef.name}`); // Log each found file
-                    const fileName = itemRef.name;
-
-                    // Create download link
                     const fileLink = document.createElement('a');
                     fileLink.href = url;
-                    fileLink.textContent = fileName;
-                    fileLink.download = fileName;
+                    fileLink.textContent = itemRef.name;
+                    fileLink.download = itemRef.name;
 
-                    // Create delete button
                     const deleteButton = document.createElement('button');
                     deleteButton.textContent = 'Delete';
                     deleteButton.style.marginLeft = '10px';
                     deleteButton.onclick = () => deleteFile(itemRef);
 
-                    // Append link and button to the results
                     const resultItem = document.createElement('div');
                     resultItem.appendChild(fileLink);
                     resultItem.appendChild(deleteButton);
                     resultsDiv.appendChild(resultItem);
-                }).catch((error) => {
-                    console.error(`Error getting download URL for ${itemRef.name}:`, error);
                 });
             });
         })
         .catch((error) => {
-            console.error('Error fetching folder contents:', error);
-            document.getElementById('results').innerHTML = 'Error fetching folder contents.';
+            document.getElementById('results').innerHTML = 'Error fetching folder contents: ' + error.message;
         });
 }
-function deleteFile(fileRef) {
-    fileRef.delete()
+
+
+
+// Function to handle file deletion
+function deleteFile(itemRef) {
+    deleteObject(itemRef)
         .then(() => {
-            console.log(`Deleted file: ${fileRef.name}`);
-            // Optionally, you can refresh the file list after deletion
-            searchFolder(); // Refresh the list
+            alert('File deleted successfully.');
+            searchFolder(); // Refresh the folder contents after deletion
         })
         .catch((error) => {
-            console.error(`Error deleting file: ${fileRef.name}`, error);
-            alert(`Error deleting file: ${fileRef.name}`);
+            alert('Error deleting file: ' + error.message);
         });
 }
 
     
-        function handleDrop(event) {
+    
+function handleDrop(event) {
             event.preventDefault();
             const folderName = localStorage.getItem('userComp');
     
@@ -242,9 +423,9 @@ function deleteFile(fileRef) {
             }
         }
     
+    
         function loadUsersPage() {
             const userComp = localStorage.getItem('userComp');
-    
             if (!userComp) {
                 document.getElementById('user-results').innerHTML = 'User not authenticated.';
                 return;
@@ -257,64 +438,87 @@ function deleteFile(fileRef) {
                 .then((querySnapshot) => {
                     const resultsDiv = document.getElementById('user-results');
                     resultsDiv.innerHTML = '';
+    
                     if (querySnapshot.empty) {
                         resultsDiv.innerHTML = 'No users found with the same comp value.';
                         return;
                     }
     
                     querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const docId = doc.id;
-                        resultsDiv.innerHTML += `
-                            <div>
-                                <p>Document ID: ${docId}</p>
-                                <p>Comp: ${data.comp}</p>
-                                <p>
-                                    Boolean Fields:
-                                    ${Object.keys(data).filter(key => typeof data[key] === 'boolean').map(key => `
-                                        <label>
-                                            <input type="checkbox" 
-                                                data-doc-id="${docId}" 
-                                                data-field="${key}" 
-                                                ${data[key] ? 'checked' : ''} 
-                                                onchange="updateBooleanField(event)">
-                                            ${key}
-                                        </label>
-                                    `).join('<br>')}
-                                </p>
-                            </div>
-                            <hr>
-                        `;
+                        const userLink = document.createElement('a');
+                        userLink.textContent = doc.id;
+                        userLink.href = '#';
+                        userLink.onclick = () => loadUserDetails(doc.id);
+    
+                        const resultItem = document.createElement('div');
+                        resultItem.appendChild(userLink);
+                        resultsDiv.appendChild(resultItem);
                     });
                 })
                 .catch((error) => {
-                    console.error('Error fetching users:', error);
                     document.getElementById('user-results').innerHTML = 'Error fetching users.';
                 });
         }
     
-        window.updateBooleanField = function(event) {
-            const checkbox = event.target;
-            const docId = checkbox.getAttribute('data-doc-id');
-            const field = checkbox.getAttribute('data-field');
-            const value = checkbox.checked;
+        function loadUserDetails(docId) {
+    localStorage.setItem('selectedUserId', docId);
+    showPage('user-details-page');
+    fetchUserDetails(docId);
+}
+
+
+        function fetchUserDetails(docId) {
+            const userDocRef = doc(window.firestore, 'passwords', docId);
     
-            const docRef = doc(window.firestore, 'passwords', docId);
+            getDoc(userDocRef)
+                .then((docSnapshot) => {
+                    if (!docSnapshot.exists()) {
+                        document.getElementById('user-details').innerHTML = 'User not found.';
+                        return;
+                    }
     
-            updateDoc(docRef, { [field]: value })
-                .then(() => {
-                    console.log(`Updated ${field} to ${value} for document ${docId}`);
+                    const data = docSnapshot.data();
+                    const userDetailsDiv = document.getElementById('user-details');
+                    userDetailsDiv.innerHTML = '';
+    
+                    Object.keys(data).forEach((field) => {
+                        if (typeof data[field] === 'boolean') {
+                            const label = document.createElement('label');
+                            label.textContent = `${field}:`;
+    
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.checked = data[field];
+                            checkbox.onchange = () => updateUserField(docId, field, checkbox.checked);
+    
+                            userDetailsDiv.appendChild(label);
+                            userDetailsDiv.appendChild(checkbox);
+                            userDetailsDiv.appendChild(document.createElement('br'));
+                        }
+                    });
                 })
                 .catch((error) => {
-                    console.error(`Error updating ${field} for document ${docId}:`, error);
+                    document.getElementById('user-details').innerHTML = 'Error loading user details.';
                 });
+        }
+    
+        function updateUserField(docId, fieldName, newValue) {
+            const userDocRef = doc(window.firestore, 'passwords', docId);
+    
+            updateDoc(userDocRef, { [fieldName]: newValue })
+                .then(() => {
+                    console.log(`Updated ${fieldName} to ${newValue}`);
+                })
+                .catch((error) => {
+                    console.error('Error updating user:', error);
+                });
+        }
+    
+        window.allowDrop = function(event) {
+            event.preventDefault();
         };
     
-        document.getElementById('drop-area').addEventListener('drop', handleDrop);
-        document.getElementById('drop-area').addEventListener('dragover', (event) => event.preventDefault());
+        window.handleDrop = handleDrop;
+    
     </script>
     
-    
-    
-</body>    
-</html>
