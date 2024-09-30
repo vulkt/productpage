@@ -112,6 +112,17 @@ select {
     background-color: #dee2e6;
     border-color: #0056b3;
 }
+.button-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    height: 100vh;           /* Full viewport height */
+}
+
+.button-container button {
+    margin: 10px;           /* Space between buttons */
+}
+
 
 /* File Links */
 a {
