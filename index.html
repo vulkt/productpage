@@ -17,11 +17,13 @@
         <p id="initial-error"></p>
     </div>
 
-    <!-- Choice Page -->
+   <!-- Choice Page -->
     <div id="choice-page" style="display: none;">
-        <button id="download-button" onclick="goToDownloadPage()">Download</button>
-        <button id="upload-button" onclick="goToUploadPage()">Upload</button>
-        <button id="users-button" onclick="goToUsersPage()">Users</button>
+        <div class="button-container">
+            <button id="download-button" onclick="goToDownloadPage()">Download</button>
+            <button id="upload-button" onclick="goToUploadPage()">Upload</button>
+            <button id="users-button" onclick="goToUsersPage()">Users</button>
+        </div>
     </div>
 
     <!-- Download Page -->
@@ -48,34 +50,30 @@
     </div>
 
     <!-- Add User Page -->
-   <!-- Add User Page -->
-<div id="add-user-page" style="display:none;">
-    <h3>Add New User</h3>
-    <form id="add-user-form">
-        <label for="nameInput">Enter Name:</label>
-        <input type="text" id="nameInput" required><br>
-    
-      
+    <div id="add-user-page" style="display:none;">
+        <h3>Add New User</h3>
+        <form id="add-user-form">
+            <label for="nameInput">Enter Name:</label>
+            <input type="text" id="nameInput" required><br>
 
-        <label for="orderCheckbox">Order:</label>
-        <input type="checkbox" id="orderCheckbox"><br>
+            <label for="orderCheckbox">Order:</label>
+            <input type="checkbox" id="orderCheckbox"><br>
 
-        <label for="downloadCheckbox">Download:</label>
-        <input type="checkbox" id="downloadCheckbox"><br>
+            <label for="downloadCheckbox">Download:</label>
+            <input type="checkbox" id="downloadCheckbox"><br>
 
-        <label for="uploadCheckbox">Upload:</label>
-        <input type="checkbox" id="uploadCheckbox"><br>
+            <label for="uploadCheckbox">Upload:</label>
+            <input type="checkbox" id="uploadCheckbox"><br>
 
-        <label for="usersCheckbox">Users:</label>
-        <input type="checkbox" id="usersCheckbox"><br>
+            <label for="usersCheckbox">Users:</label>
+            <input type="checkbox" id="usersCheckbox"><br>
 
-        <button type="button" onclick="addNewUser()">Create User</button>
-    </form>
-    <p id="error" style="color:red;"></p> <!-- Added for error message -->
-    <p id="success" style="color:green;"></p> <!-- Added for success message -->
-    <button onclick="backToUsers()">Back to Users</button>
-</div>
-
+            <button type="button" onclick="addNewUser()">Create User</button>
+        </form>
+        <p id="error" style="color:red;"></p>
+        <p id="success" style="color:green;"></p>
+        <button onclick="backToUsers()">Back to Users</button>
+    </div>
 
     <!-- User Details Page -->
     <div id="user-details-page" style="display:none;">
@@ -83,15 +81,14 @@
         <div id="user-details"></div>
         <button onclick="backToUsers()">Back to Users</button>
         <button onclick="deleteUser()">Delete User</button>
-
-      
     </div>
+
     <!-- Firebase SDK and Your Script -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js';
         import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
         import { getStorage, ref, uploadBytes, listAll, getDownloadURL, deleteObject  } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
-    
+
         const firebaseConfig = {
             apiKey: "AIzaSyDnnHjkUGjHMyCqI5MQspJHR-eJbKwvR00",
             authDomain: "past-jordan.firebaseapp.com",
@@ -100,199 +97,174 @@
             messagingSenderId: "541138565069",
             appId: "1:541138565069:web:e1c0971d58149b98c0f684"
         };
-    
+
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
         const storage = getStorage(app);
-    
+
         window.firestore = firestore;
         window.storage = storage;
-    
+
         window.checkPassword = function() {
-    const password = document.getElementById('passwordInput').value.trim();
-    console.log("Password:", password);  // Log the value of password
-    if (!password) {
-        document.getElementById('initial-error').innerHTML = 'Please enter a password.';
-        return;
-    }
-
-    const passwordsRef = collection(window.firestore, 'passwords');
-    const q = query(passwordsRef, where('__name__', '==', password));
-
-    getDocs(q)
-        .then((querySnapshot) => {
-            if (querySnapshot.empty) {
-                document.getElementById('initial-error').innerHTML = 'Password not found.';
+            const password = document.getElementById('passwordInput').value.trim();
+            console.log("Password:", password);  
+            if (!password) {
+                document.getElementById('initial-error').innerHTML = 'Please enter a password.';
                 return;
             }
 
-            const userDoc = querySnapshot.docs[0];
-            const userComp = userDoc.data().comp;
+            const passwordsRef = collection(window.firestore, 'passwords');
+            const q = query(passwordsRef, where('__name__', '==', password));
 
-            localStorage.setItem('userComp', userComp);
-            localStorage.setItem('userDocId', userDoc.id);
+            getDocs(q)
+                .then((querySnapshot) => {
+                    if (querySnapshot.empty) {
+                        document.getElementById('initial-error').innerHTML = 'Password not found.';
+                        return;
+                    }
 
-            showPage('choice-page');
-            updateButtonVisibility(userDoc.data());
-        })
-        .catch((error) => {
-            console.error('Error checking password:', error);
-            document.getElementById('initial-error').innerHTML = 'Error checking password.';
-        });
-};
+                    const userDoc = querySnapshot.docs[0];
+                    const userComp = userDoc.data().comp;
 
-    
-        // Updated searchUsers to search both 'comp' and 'name' fields
+                    localStorage.setItem('userComp', userComp);
+                    localStorage.setItem('userDocId', userDoc.id);
+
+                    showPage('choice-page');
+                    updateButtonVisibility(userDoc.data());
+                })
+                .catch((error) => {
+                    console.error('Error checking password:', error);
+                    document.getElementById('initial-error').innerHTML = 'Error checking password.';
+                });
+        };
+
         window.searchUsers = function() {
-    const searchTerm = document.getElementById('user-search').value.trim().toLowerCase();
-    const userComp = localStorage.getItem('userComp');
-    const passwordsRef = collection(window.firestore, 'passwords');
-    const q = query(passwordsRef, where('comp', '==', userComp)); // Assuming we filter by comp first
+            const searchTerm = document.getElementById('user-search').value.trim().toLowerCase();
+            const userComp = localStorage.getItem('userComp');
+            const passwordsRef = collection(window.firestore, 'passwords');
+            const q = query(passwordsRef, where('comp', '==', userComp)); 
 
-    getDocs(q)
-        .then((querySnapshot) => {
-            const resultsDiv = document.getElementById('user-results');
-            resultsDiv.innerHTML = '';
+            getDocs(q)
+                .then((querySnapshot) => {
+                    const resultsDiv = document.getElementById('user-results');
+                    resultsDiv.innerHTML = '';
 
-            if (querySnapshot.empty) {
-                resultsDiv.innerHTML = 'No users found with the same comp value.';
-                return;
-            }
+                    if (querySnapshot.empty) {
+                        resultsDiv.innerHTML = 'No users found with the same comp value.';
+                        return;
+                    }
 
-            // Filter users based on the search term for both document ID and name field
-            querySnapshot.forEach((doc) => {
-                const userId = doc.id.toLowerCase();
-                const userName = doc.data().name ? doc.data().name.toLowerCase() : ''; // Handling potential undefined name
-                
-                if (userId.includes(searchTerm) || userName.includes(searchTerm)) {
-                    const userLink = document.createElement('a');
-                    userLink.textContent = `${doc.data().name} (${doc.id})`; // Display name and user ID
-                    userLink.href = '#';
-                    userLink.onclick = () => loadUserDetails(doc.id);
+                    querySnapshot.forEach((doc) => {
+                        const userId = doc.id.toLowerCase();
+                        const userName = doc.data().name ? doc.data().name.toLowerCase() : ''; 
+                        
+                        if (userId.includes(searchTerm) || userName.includes(searchTerm)) {
+                            const userLink = document.createElement('a');
+                            userLink.textContent = `${doc.data().name} (${doc.id})`; 
+                            userLink.href = '#';
+                            userLink.onclick = () => loadUserDetails(doc.id);
 
-                    const resultItem = document.createElement('div');
-                    resultItem.appendChild(userLink);
-                    resultsDiv.appendChild(resultItem);
-                }
-            });
+                            const resultItem = document.createElement('div');
+                            resultItem.appendChild(userLink);
+                            resultsDiv.appendChild(resultItem);
+                        }
+                    });
 
-            // If no users match the search term
-            if (resultsDiv.innerHTML === '') {
-                resultsDiv.innerHTML = 'No users found.';
-            }
-        })
-        .catch((error) => {
-            document.getElementById('user-results').innerHTML = 'Error fetching users.';
-        });
-};
+                    if (resultsDiv.innerHTML === '') {
+                        resultsDiv.innerHTML = 'No users found.';
+                    }
+                })
+                .catch((error) => {
+                    document.getElementById('user-results').innerHTML = 'Error fetching users.';
+                });
+        };
 
+        function showPage(pageId) {
+            const pages = ['initial-page', 'choice-page', 'download-page', 'upload-page', 'users-page', 'user-details-page', 'add-user-page'];
+            pages.forEach(page => document.getElementById(page).style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+        }
 
-    // Function to navigate to the "Add New User" page
-  
-    
-function showPage(pageId) {
-        const pages = ['initial-page', 'choice-page', 'download-page', 'upload-page', 'users-page', 'user-details-page', 'add-user-page'];
-        pages.forEach(page => document.getElementById(page).style.display = 'none');
-        document.getElementById(pageId).style.display = 'block';
-    }
-
-    
         function updateButtonVisibility(userData) {
             document.getElementById('download-button').style.display = userData.download ? 'inline-block' : 'none';
             document.getElementById('upload-button').style.display = userData.upload ? 'inline-block' : 'none';
             document.getElementById('users-button').style.display = userData.users ? 'inline-block' : 'none';
         }
-    
+
         window.goToDownloadPage = function() {
-         showPage('download-page');
+            showPage('download-page');
             searchFolder();
         };
-    
+
         window.goToUploadPage = function() {
             showPage('upload-page');
-            const userComp = localStorage.getItem('userComp'); // Fetch userComp from localStorage
+            const userComp = localStorage.getItem('userComp'); 
             if (userComp) {
                 console.log(`Document found. Comp value: ${userComp}`);
             } else {
                 console.error('Error: userComp not found in localStorage');
             }
         };
-    
+
         window.goToUsersPage = function() {
             showPage('users-page');
             loadUsersPage();
         };
-    
+
         window.backToChoice = function() {
             showPage('choice-page');
         };
 
         window.backToUsers = function() {
-    showPage('users-page');
-    loadUsersPage(); // Reload the users list after adding
-};
-
+            showPage('users-page');
+            loadUsersPage();
+        };
 
         window.goToAddUserPage = function() {
             showPage('add-user-page');
         };
 
         window.addNewUser = function() {
-    const nameInput = document.getElementById('nameInput').value.trim();
-    const comp = localStorage.getItem('userComp'); // Use logged-in user's comp
-    const order = document.getElementById('orderCheckbox').checked;
-    const download = document.getElementById('downloadCheckbox').checked;
-    const upload = document.getElementById('uploadCheckbox').checked;
-    const users = document.getElementById('usersCheckbox').checked;
+            const nameInput = document.getElementById('nameInput').value.trim();
+            const orderCheckbox = document.getElementById('orderCheckbox').checked;
+            const downloadCheckbox = document.getElementById('downloadCheckbox').checked;
+            const uploadCheckbox = document.getElementById('uploadCheckbox').checked;
+            const usersCheckbox = document.getElementById('usersCheckbox').checked;
 
-    if (!nameInput) {
-        document.getElementById('error').innerHTML = 'Please enter a name.';
-        return;
-    }
+            const userComp = localStorage.getItem('userComp');
+            const newUserRef = doc(collection(firestore, 'passwords'));
 
-    const newPassword = generateUniquePassword(); // Generate a 6-digit password
-
-    const newUserRef = doc(window.firestore, 'passwords', newPassword.toString());
-setDoc(newUserRef, {
-    name: nameInput,
-    comp: comp, // Automatically use current user's comp
-    order: order,
-    download: download,
-    upload: upload,
-    users: users
-})
-.then(() => {
-    document.getElementById('success').innerHTML = `User added successfully. Generated password: ${newPassword}`;
-})
-.catch((error) => {
-    document.getElementById('error').innerHTML = 'Error adding user.';
-    console.error('Error adding user:', error);
-});
-};
-
-    
+            setDoc(newUserRef, {
+                name: nameInput,
+                order: orderCheckbox,
+                download: downloadCheckbox,
+                upload: uploadCheckbox,
+                users: usersCheckbox,
+                comp: userComp,
+            })
+            .then(() => {
+                document.getElementById('success').innerHTML = 'User added successfully!';
+                document.getElementById('error').innerHTML = '';
+            })
+            .catch((error) => {
+                document.getElementById('error').innerHTML = 'Error adding user: ' + error;
+            });
+        };
 
         window.loadUserDetails = function(userId) {
-            const userRef = doc(window.firestore, 'passwords', userId);
-
+            const userRef = doc(firestore, 'passwords', userId);
             getDoc(userRef)
-                .then((docSnap) => {
-                    if (docSnap.exists()) {
-                        const userData = docSnap.data();
-                        document.getElementById('user-details').innerHTML = `
-                            <p><strong>Name:</strong> ${userData.name}</p>
-                            <p><strong>Order:</strong> ${userData.order}</p>
-                            <p><strong>Download:</strong> ${userData.download}</p>
-                            <p><strong>Upload:</strong> ${userData.upload}</p>
-                            <p><strong>Users:</strong> ${userData.users}</p>
-                        `;
-                        showPage('user-details-page');
+                .then((doc) => {
+                    if (doc.exists()) {
+                        const userDetails = document.getElementById('user-details');
+                        userDetails.innerHTML = JSON.stringify(doc.data(), null, 2);
+                        document.getElementById('user-details-page').style.display = 'block';
                     } else {
-                        document.getElementById('user-details').innerHTML = 'User not found.';
+                        console.error('No such user!');
                     }
                 })
                 .catch((error) => {
-                    document.getElementById('user-details').innerHTML = 'Error fetching user details.';
+                    console.error('Error fetching user details:', error);
                 });
         };
 
@@ -335,66 +307,100 @@ setDoc(newUserRef, {
             console.error('Error deleting user:', error);
         });
 };
-    
-        function searchFolder() {
-    const folderName = localStorage.getItem('userComp');
-    if (!folderName) {
-        document.getElementById('results').innerHTML = 'Folder name is required.';
-        return;
+
+window.searchFolder = async function() {
+    const userComp = localStorage.getItem('userComp');
+    const folderRef = ref(storage, `/${userComp}`); // Updated path
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; 
+
+    console.log(`Searching in folder: ${folderRef.fullPath}`); // Debugging line
+
+    try {
+        const folderList = await listAll(folderRef);
+        folderList.prefixes.forEach((folder) => {
+            const folderName = folder.name.split('/').slice(-1)[0];
+            const folderLink = document.createElement('a');
+            folderLink.textContent = folderName;
+            folderLink.href = '#';
+            folderLink.onclick = () => loadFiles(folder.name);
+            const folderItem = document.createElement('div');
+            folderItem.appendChild(folderLink);
+            resultsDiv.appendChild(folderItem);
+        });
+
+        if (folderList.prefixes.length === 0) {
+            resultsDiv.innerHTML = 'No folders found.';
+        }
+    } catch (error) {
+        console.error('Error listing folders:', error);
+        resultsDiv.innerHTML = 'Error loading folders.';
     }
+};
 
-    const storageRef = ref(window.storage, folderName);
-    listAll(storageRef)
-        .then((res) => {
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '';
 
-            if (res.items.length === 0) {
-                resultsDiv.innerHTML = 'No files found in this folder.';
-                return;
+
+window.loadFiles = async function(folderName) {
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; 
+
+    const userComp = localStorage.getItem('userComp');
+    const folderPath = `${userComp}/${folderName}`; // Construct the full path
+    const folderRef = ref(storage, folderPath);
+
+    console.log(`Loading files from folder: ${folderPath}`); // Debugging line
+
+    try {
+        const fileList = await listAll(folderRef);
+        fileList.items.forEach((fileRef) => {
+            const fileName = fileRef.name.split('/').slice(-1)[0];
+            const downloadLink = document.createElement('a');
+            downloadLink.textContent = fileName;
+            downloadLink.href = '#';
+            downloadLink.onclick = async () => {
+                const url = await getDownloadURL(fileRef);
+                window.open(url);
+            };
+
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = () => deleteFile(fileRef);
+
+            const fileItem = document.createElement('div');
+            fileItem.appendChild(downloadLink);
+            fileItem.appendChild(deleteButton);
+            resultsDiv.appendChild(fileItem);
+        });
+
+        if (fileList.items.length === 0) {
+            resultsDiv.innerHTML = 'No files found in this folder.';
+        }
+    } catch (error) {
+        console.error('Error loading files:', error);
+        resultsDiv.innerHTML = 'Error loading files.';
+    }
+};
+
+
+
+
+
+        window.deleteFile = async function(fileRef) {
+            const confirmed = confirm(`Are you sure you want to delete ${fileRef.name}?`);
+            if (!confirmed) return;
+
+            try {
+                await deleteObject(fileRef);
+                alert(`${fileRef.name} deleted successfully.`);
+                loadFiles(fileRef.parent.fullPath); // Reload files after deletion
+            } catch (error) {
+                console.error('Error deleting file:', error);
+                alert('Error deleting file.');
             }
+        };
 
-            res.items.forEach((itemRef) => {
-                getDownloadURL(itemRef).then((url) => {
-                    const fileLink = document.createElement('a');
-                    fileLink.href = url;
-                    fileLink.textContent = itemRef.name;
-                    fileLink.download = itemRef.name;
-
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Delete';
-                    deleteButton.style.marginLeft = '10px';
-                    deleteButton.onclick = () => deleteFile(itemRef);
-
-                    const resultItem = document.createElement('div');
-                    resultItem.appendChild(fileLink);
-                    resultItem.appendChild(deleteButton);
-                    resultsDiv.appendChild(resultItem);
-                });
-            });
-        })
-        .catch((error) => {
-            document.getElementById('results').innerHTML = 'Error fetching folder contents: ' + error.message;
-        });
-}
-
-
-
-// Function to handle file deletion
-function deleteFile(itemRef) {
-    deleteObject(itemRef)
-        .then(() => {
-            alert('File deleted successfully.');
-            searchFolder(); // Refresh the folder contents after deletion
-        })
-        .catch((error) => {
-            alert('Error deleting file: ' + error.message);
-        });
-}
-
-    
-    
-function handleDrop(event) {
+  
+        function handleDrop(event) {
     event.preventDefault();
     const folderName = localStorage.getItem('userComp');
     if (!folderName) {
@@ -519,6 +525,8 @@ function loadUsersPage() {
                     document.getElementById('user-details').innerHTML = 'Error loading user details.';
                 });
         }
+
+        //------------------------------ EXPERMENT----------------
     
         function updateUserField(docId, fieldName, newValue) {
             const userDocRef = doc(window.firestore, 'passwords', docId);
@@ -540,5 +548,7 @@ function loadUsersPage() {
     
         window.handleDrop = handleDrop;
     
+
     </script>
-    
+</body>
+</html>
