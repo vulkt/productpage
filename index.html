@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firebase Website</title>
+   
     <link rel="stylesheet" href="styles.css">
     <style>
         /* Your CSS styles here */
@@ -17,14 +18,15 @@
         <p id="initial-error"></p>
     </div>
 
-   <!-- Choice Page -->
-    <div id="choice-page" style="display: none;">
-        <div class="button-container">
-            <button id="download-button" onclick="goToDownloadPage()">Download</button>
-            <button id="upload-button" onclick="goToUploadPage()">Upload</button>
-            <button id="users-button" onclick="goToUsersPage()">Users</button>
-        </div>
+  <!-- Choice Page -->
+  <div id="choice-page" style="display: none;">
+    <div class="button-container">
+        <button id="download-button" onclick="goToDownloadPage()">Download</button>
+        <button id="upload-button" onclick="goToUploadPage()">Upload</button>
+        <button id="users-button" onclick="goToUsersPage()">Users</button>
+        <button id="manage-stores-button" onclick="goToManageStoresPage()">Manage Stores</button>
     </div>
+</div>
 
     <!-- Download Page -->
     <div id="download-page" class="section" style="display: none;">
@@ -50,30 +52,45 @@
     </div>
 
     <!-- Add User Page -->
-    <div id="add-user-page" style="display:none;">
-        <h3>Add New User</h3>
-        <form id="add-user-form">
-            <label for="nameInput">Enter Name:</label>
-            <input type="text" id="nameInput" required><br>
+<div id="add-user-page" style="display:none;">
+    <h3>Add New User</h3>
+    <form id="add-user-form">
+        <label for="nameInput">Enter Name:</label>
+        <input type="text" id="nameInput" required><br>
 
-            <label for="orderCheckbox">Order:</label>
-            <input type="checkbox" id="orderCheckbox"><br>
+        <label for="orderCheckbox">Order:</label>
+        <input type="checkbox" id="orderCheckbox"><br>
 
-            <label for="downloadCheckbox">Download:</label>
-            <input type="checkbox" id="downloadCheckbox"><br>
+        <!-- Removed the old checkboxes for download, upload, and users -->
+        
+        <!-- New Checkboxes -->
+        <label for="wrongPriceCheckbox">Wrong Price:</label>
+        <input type="checkbox" id="wrongPriceCheckbox"><br>
 
-            <label for="uploadCheckbox">Upload:</label>
-            <input type="checkbox" id="uploadCheckbox"><br>
+        <label for="returnCheckbox">Return:</label>
+        <input type="checkbox" id="returnCheckbox"><br>
 
-            <label for="usersCheckbox">Users:</label>
-            <input type="checkbox" id="usersCheckbox"><br>
+        <label for="expiredCheckbox">Expired:</label>
+        <input type="checkbox" id="expiredCheckbox"><br>
 
-            <button type="button" onclick="addNewUser()">Create User</button>
-        </form>
-        <p id="error" style="color:red;"></p>
-        <p id="success" style="color:green;"></p>
-        <button onclick="backToUsers()">Back to Users</button>
-    </div>
+        <label for="nearExpiredCheckbox">Near Expired:</label>
+        <input type="checkbox" id="nearExpiredCheckbox"><br>
+
+        <label for="inventoryCheckbox">Inventory:</label>
+        <input type="checkbox" id="inventoryCheckbox"><br>
+
+        <!-- Submit Button -->
+        <button type="button" onclick="addNewUser()">Create User</button>
+    </form>
+
+    <!-- Error/Success Messages -->
+    <p id="error" style="color:red;"></p>
+    <p id="success" style="color:green;"></p>
+
+    <!-- Back Button -->
+    <button onclick="backToUsers()">Back to Users</button>
+</div>
+
 
     <!-- User Details Page -->
     <div id="user-details-page" style="display:none;">
@@ -83,10 +100,19 @@
         <button onclick="deleteUser()">Delete User</button>
     </div>
 
+    <!-- Manage Stores Page -->
+    <div id="manage-stores-page" style="display:none;">
+        <h2>Manage Stores</h2>
+        <div id="stores-list"></div>
+        
+        <button onclick="addStore()">Add Store</button>
+        <button onclick="backToChoice()">Back</button>
+    </div>
+
     <!-- Firebase SDK and Your Script -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js';
-        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc, getDoc, setDoc, deleteDoc, deleteField, addDoc } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-firestore.js';
         import { getStorage, ref, uploadBytes, listAll, getDownloadURL, deleteObject  } from 'https://www.gstatic.com/firebasejs/9.18.0/firebase-storage.js';
 
         const firebaseConfig = {
@@ -101,6 +127,7 @@
         const app = initializeApp(firebaseConfig);
         const firestore = getFirestore(app);
         const storage = getStorage(app);
+        const db = getFirestore(app); // Initialize Firestore
 
         window.firestore = firestore;
         window.storage = storage;
@@ -180,16 +207,103 @@
         };
 
         function showPage(pageId) {
-            const pages = ['initial-page', 'choice-page', 'download-page', 'upload-page', 'users-page', 'user-details-page', 'add-user-page'];
+            const pages = ['initial-page', 'choice-page', 'download-page', 'upload-page', 'users-page', 'user-details-page', 'add-user-page', 'manage-stores-page'];
             pages.forEach(page => document.getElementById(page).style.display = 'none');
             document.getElementById(pageId).style.display = 'block';
         }
+
 
         function updateButtonVisibility(userData) {
             document.getElementById('download-button').style.display = userData.download ? 'inline-block' : 'none';
             document.getElementById('upload-button').style.display = userData.upload ? 'inline-block' : 'none';
             document.getElementById('users-button').style.display = userData.users ? 'inline-block' : 'none';
         }
+
+        window.goToManageStoresPage = function() {
+            showPage('manage-stores-page');
+            loadStores();
+        };
+
+        function loadStores() {
+    const userComp = localStorage.getItem('userComp');
+    const storesRef = doc(window.firestore, userComp, 'stores'); // Reference to the "stores" document
+
+    getDoc(storesRef).then(docSnapshot => {
+        const storesList = document.getElementById('stores-list');
+        storesList.innerHTML = '';
+
+        if (docSnapshot.exists()) {
+            const storeData = docSnapshot.data();
+
+            // Iterate over each field in the "stores" document
+            for (const [field, value] of Object.entries(storeData)) {
+                const storeDiv = document.createElement('div');
+                storeDiv.innerHTML = `${field}: ${value} <button onclick="deleteStore('${field}')">Delete</button> <button onclick="editStore('${field}', '${value}')">Edit</button>`;
+                storesList.appendChild(storeDiv);
+            }
+        } else {
+            console.log('No stores document found.');
+        }
+    }).catch(error => {
+        console.error('Error loading stores:', error);
+    });
+}
+
+
+window.addStore = function() {
+        const userComp = localStorage.getItem('userComp');
+        const storesRef = doc(window.firestore, userComp, 'stores');
+
+        const fieldName = prompt("Enter the store name:");
+        const fieldValue = prompt("Enter the store value:");
+
+        if (fieldName && fieldValue) {
+            setDoc(storesRef, { [fieldName]: fieldValue }, { merge: true })
+                .then(() => {
+                    console.log("Store added successfully");
+                    loadStores(); 
+                })
+                .catch(error => {
+                    console.error("Error adding store:", error);
+                });
+        } else {
+            alert("Field name and value cannot be empty.");
+        }
+    };
+
+    window.deleteStore = function(storeId) {
+    const userComp = localStorage.getItem('userComp'); // Get the userComp document ID
+    const storeRef = doc(window.firestore, userComp, 'stores'); // Reference to the 'stores' document
+
+    updateDoc(storeRef, {
+        [storeId]: deleteField() // Use deleteField to remove the specific field
+    })
+        .then(() => {
+            alert('Store deleted successfully!');
+            loadStores(); // Reload the stores after deletion
+        })
+        .catch(error => {
+            console.error('Error deleting store:', error);
+        });
+};
+
+
+window.editStore = function(storeId, currentValue) {
+    const newValue = prompt('Enter new value:', currentValue);
+    if (newValue !== null) {
+        const userComp = localStorage.getItem('userComp');
+        const storeRef = doc(window.firestore, userComp, 'stores'); // Reference to the 'stores' document
+
+        setDoc(storeRef, { [storeId]: newValue }, { merge: true }) // Use merge to update the specific field
+            .then(() => {
+                alert('Store updated successfully!');
+                loadStores(); // Reload the stores after updating
+            })
+            .catch(error => {
+                console.error('Error updating store:', error);
+            });
+    }
+};
 
         window.goToDownloadPage = function() {
             showPage('download-page');
@@ -224,32 +338,65 @@
             showPage('add-user-page');
         };
 
-        window.addNewUser = function() {
-            const nameInput = document.getElementById('nameInput').value.trim();
-            const orderCheckbox = document.getElementById('orderCheckbox').checked;
-            const downloadCheckbox = document.getElementById('downloadCheckbox').checked;
-            const uploadCheckbox = document.getElementById('uploadCheckbox').checked;
-            const usersCheckbox = document.getElementById('usersCheckbox').checked;
+       // Function to generate a random user ID with 1 to 6 digits
+function generateUserId() {
+    return Math.floor(Math.random() * 900000) + 100000; // Generates a 6-figure number between 100000 and 999999
+}
 
-            const userComp = localStorage.getItem('userComp');
-            const newUserRef = doc(collection(firestore, 'passwords'));
+window.addNewUser = function() {
+    const nameInput = document.getElementById('nameInput').value.trim();
+    const orderCheckbox = document.getElementById('orderCheckbox').checked;
+    const wrongPriceCheckbox = document.getElementById('wrongPriceCheckbox').checked;
+    const returnCheckbox = document.getElementById('returnCheckbox').checked;
+    const expiredCheckbox = document.getElementById('expiredCheckbox').checked;
+    const nearExpiredCheckbox = document.getElementById('nearExpiredCheckbox').checked;
+    const inventoryCheckbox = document.getElementById('inventoryCheckbox').checked;
 
-            setDoc(newUserRef, {
-                name: nameInput,
-                order: orderCheckbox,
-                download: downloadCheckbox,
-                upload: uploadCheckbox,
-                users: usersCheckbox,
-                comp: userComp,
-            })
-            .then(() => {
-                document.getElementById('success').innerHTML = 'User added successfully!';
-                document.getElementById('error').innerHTML = '';
-            })
-            .catch((error) => {
-                document.getElementById('error').innerHTML = 'Error adding user: ' + error;
-            });
-        };
+    const userComp = localStorage.getItem('userComp');
+    const passwordsCollection = collection(firestore, 'passwords');
+
+    // Generate and validate user ID
+    function addUserWithUniqueId() {
+        const userId = generateUserId(); // Generate user ID
+        
+        // Check if user ID already exists in Firestore
+        const userRef = doc(passwordsCollection, String(userId));
+        
+        getDoc(userRef).then((docSnapshot) => {
+            if (!docSnapshot.exists()) {
+                // If user ID doesn't exist, add the user
+                setDoc(userRef, {
+                    userId: userId,
+                    name: nameInput,
+                    order: orderCheckbox,
+                    'wrong-price': wrongPriceCheckbox,
+                    return: returnCheckbox,
+                    expired: expiredCheckbox,
+                    'near-expired': nearExpiredCheckbox,
+                    inventory: inventoryCheckbox,
+                    comp: userComp,
+                })
+                .then(() => {
+                    document.getElementById('success').innerHTML = 'User added successfully! User ID: ' + userId;
+                    document.getElementById('error').innerHTML = '';
+                })
+                .catch((error) => {
+                    document.getElementById('error').innerHTML = 'Error adding user: ' + error;
+                });
+            } else {
+                // If the generated user ID already exists, try again
+                addUserWithUniqueId();
+            }
+        }).catch((error) => {
+            document.getElementById('error').innerHTML = 'Error checking user ID: ' + error;
+        });
+    }
+
+    // Start the process of adding user with a unique ID
+    addUserWithUniqueId();
+};
+
+
 
         window.loadUserDetails = function(userId) {
             const userRef = doc(firestore, 'passwords', userId);
@@ -399,48 +546,108 @@ window.loadFiles = async function(folderName) {
             }
         };
 
-  
-        function handleDrop(event) {
-    event.preventDefault();
-    const folderName = localStorage.getItem('userComp');
-    if (!folderName) {
-        document.getElementById('upload-results').innerHTML = 'Please enter a folder name.';
-        console.error('Error: No folder name found in localStorage');
-        return;
+
+
+        async function handleDrop(event) {
+  event.preventDefault();
+
+  const dropArea = document.getElementById('drop-area');
+  const uploadResults = document.getElementById('upload-results');
+
+  // Check if a folder name exists in localStorage (user's company name)
+  const folderName = localStorage.getItem('userComp');
+  if (!folderName) {
+    uploadResults.innerHTML = 'Please enter a folder name';
+    return;
+  }
+
+  const files = event.dataTransfer.files;
+
+  if (files.length > 0) {
+    const file = files[0];
+
+    if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        const data = e.target.result;
+
+        const workbook = XLSX.read(data, { type: 'binary' });
+
+        for (const sheetName of workbook.SheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+
+          // Convert sheet data to JSON with row numbers
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }); // Header: 1 provides raw arrays
+
+          // Skip the first row (assume it's the title row)
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i];
+            
+            // Ensure the row is not empty
+            if (!row || row.length === 0 || !row[0]) {
+              console.log('Skipping empty or invalid row:', row);
+              continue;
+            }
+
+            // Map the row to the required fields
+            const sheetData = {
+              barcode: row[0], // Cell A
+              name: row[1] || '', // Cell B
+              price: row[2] || 0, // Cell C
+              pic: row[3] || '', // Cell D
+            };
+
+            // Use cell A value as the document ID
+            await createDocument(folderName, sheetData, row[0]);
+          }
+        }
+
+        uploadResults.innerHTML = `File ${file.name} uploaded successfully!`;
+      };
+
+      reader.onerror = function (error) {
+        uploadResults.innerHTML = `Error reading file: ${error}`;
+      };
+
+      reader.readAsBinaryString(file); // Read the file
+    } else {
+      uploadResults.innerHTML = 'Please upload an Excel (.xlsx or .xls) file.';
     }
+  }
+}
 
-    console.log('Folder Name:', folderName); // Debugging output
+async function createDocument(folderName, sheetData, docId) {
+  try {
+    // Log the collection name for debugging purposes
+    console.log('Attempting to create document in collection:', folderName);
 
-    const files = event.dataTransfer.files;
-    const resultsDiv = document.getElementById('upload-results');
-    resultsDiv.innerHTML = '';
+    // Reference to the Firestore collection
+    const colRef = collection(db, folderName);
 
-    if (files.length === 0) {
-        resultsDiv.innerHTML = 'No files were dropped.';
-        return;
-    }
-
-    for (let file of files) {
-        const storageRef = ref(window.storage, `new data (${folderName})/${file.name}`);
-        uploadBytes(storageRef, file).then(() => {
-            resultsDiv.innerHTML += `<p>Uploaded file: ${file.name}</p>`;
-        }).catch((error) => {
-            console.error('Error uploading file:', error);
-            resultsDiv.innerHTML += `<p>Error uploading file: ${file.name}</p>`;
-        });
-    }
+    // Set the document in Firestore with a specific ID
+    const docRef = await setDoc(doc(colRef, docId), sheetData);
+    console.log('Document successfully created with ID:', docId);
+  } catch (error) {
+    console.error('Error creating document:', error);
+  }
 }
 
 
-        // Set up event listeners
-        window.onload = function() {
+
+
+
+  // Dragover event to allow file drop
+  function handleDragOver(event) {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+  }
+
+  // Set up event listeners for the drag and drop functionality
+  window.onload = function () {
     const dropArea = document.getElementById('drop-area');
+    dropArea.addEventListener('dragover', handleDragOver);
     dropArea.addEventListener('drop', handleDrop);
-    dropArea.addEventListener('dragover', (event) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'copy'; // Show copy cursor
-    });
-};
+  };
 
     
 function loadUsersPage() {
@@ -550,5 +757,8 @@ function loadUsersPage() {
     
 
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+   
+
 </body>
 </html>
