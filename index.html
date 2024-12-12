@@ -35,61 +35,117 @@
         <button onclick="backToChoice()">Back</button>
     </div>
 
-    <!-- Upload Page -->
     <div id="upload-page" style="display: none;">
-        <div id="drop-area" style="border: 2px dashed black; padding: 20px;">Drop files here</div>
-        <div id="upload-results"></div>
-        <button onclick="backToChoice()">Back</button>
+        <div class="container">
+            <h2 class="page-title">Upload Page</h2>
+    
+            <!-- Drop Area for File Upload -->
+            <div id="drop-area" class="drop-area">
+                <p>Drag and drop your file here or click to select a file.</p>
+            </div>
+    
+            <!-- Get Current Data Button -->
+            <div class="buttons-container">
+                <button id="get-data-button" class="action-button" onclick="getCurrentData()">Get Current Data</button>
+            </div>
+    
+            <!-- Upload Results -->
+            <div id="upload-results"></div>
+    
+            <!-- Back Button -->
+            <button onclick="backToChoice()" class="action-button back-button">Back</button>
+        </div>
     </div>
+    
+    
+    
+    
 
-    <!-- User Page -->
-    <div id="users-page">
-        <h2>Users Page</h2>
-        <input type="text" id="user-search" placeholder="Search for users" oninput="searchUsers()" />
-        <div id="user-results"></div>
-        <button onclick="backToChoice()">Back</button>
-        <button onclick="goToAddUserPage()">Add New User</button>
+    <!-- Users Page -->
+<div id="users-page" style="display: none;">
+    <div class="container">
+        <h2 class="page-title">Users Management</h2>
+
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <input 
+                type="text" 
+                id="user-search" 
+                class="form-input" 
+                placeholder="Search for users by name" 
+                oninput="searchUsers()" 
+            />
+        </div>
+
+        <!-- User Results -->
+        <div id="user-results" class="results-list">
+            <!-- User list will be dynamically populated here -->
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="form-actions">
+            <button class="btn btn-secondary" onclick="backToChoice()">Back</button>
+            <button class="btn btn-primary" onclick="goToAddUserPage()">Add New User</button>
+        </div>
     </div>
+</div>
+
 
     <!-- Add User Page -->
-<div id="add-user-page" style="display:none;">
-    <h3>Add New User</h3>
-    <form id="add-user-form">
-        <label for="nameInput">Enter Name:</label>
-        <input type="text" id="nameInput" required><br>
+<div id="add-user-page" style="display: none;">
+    <div class="container">
+        <h3 class="page-title">Add New User</h3>
+        <form id="add-user-form" class="form">
+            <!-- Name Input -->
+            <div class="form-group">
+                <label for="nameInput" class="form-label">Enter Name:</label>
+                <input type="text" id="nameInput" class="form-input" placeholder="User's Full Name" required>
+            </div>
 
-        <label for="orderCheckbox">Order:</label>
-        <input type="checkbox" id="orderCheckbox"><br>
+            <!-- Permissions Checkboxes -->
+            <div class="form-group">
+                <label class="form-label">Permissions:</label>
+                <div class="checkbox-group">
+                    <label for="orderCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="orderCheckbox" class="form-checkbox">
+                        Order
+                    </label>
+                    <label for="wrongPriceCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="wrongPriceCheckbox" class="form-checkbox">
+                        Wrong Price
+                    </label>
+                    <label for="returnCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="returnCheckbox" class="form-checkbox">
+                        Return
+                    </label>
+                    <label for="expiredCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="expiredCheckbox" class="form-checkbox">
+                        Expired
+                    </label>
+                    <label for="nearExpiredCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="nearExpiredCheckbox" class="form-checkbox">
+                        Near Expired
+                    </label>
+                    <label for="inventoryCheckbox" class="checkbox-label">
+                        <input type="checkbox" id="inventoryCheckbox" class="form-checkbox">
+                        Inventory
+                    </label>
+                </div>
+            </div>
 
-        <!-- Removed the old checkboxes for download, upload, and users -->
-        
-        <!-- New Checkboxes -->
-        <label for="wrongPriceCheckbox">Wrong Price:</label>
-        <input type="checkbox" id="wrongPriceCheckbox"><br>
+            <!-- Submit and Feedback -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="addNewUser()">Create User</button>
+                <button type="button" class="btn btn-secondary" onclick="backToUsers()">Back to Users</button>
+            </div>
+        </form>
 
-        <label for="returnCheckbox">Return:</label>
-        <input type="checkbox" id="returnCheckbox"><br>
-
-        <label for="expiredCheckbox">Expired:</label>
-        <input type="checkbox" id="expiredCheckbox"><br>
-
-        <label for="nearExpiredCheckbox">Near Expired:</label>
-        <input type="checkbox" id="nearExpiredCheckbox"><br>
-
-        <label for="inventoryCheckbox">Inventory:</label>
-        <input type="checkbox" id="inventoryCheckbox"><br>
-
-        <!-- Submit Button -->
-        <button type="button" onclick="addNewUser()">Create User</button>
-    </form>
-
-    <!-- Error/Success Messages -->
-    <p id="error" style="color:red;"></p>
-    <p id="success" style="color:green;"></p>
-
-    <!-- Back Button -->
-    <button onclick="backToUsers()">Back to Users</button>
+        <!-- Feedback Messages -->
+        <p id="error" class="message error-message"></p>
+        <p id="success" class="message success-message"></p>
+    </div>
 </div>
+
 
 
     <!-- User Details Page -->
@@ -224,84 +280,102 @@
             loadStores();
         };
 
-        function loadStores() {
+       function loadStores() {
     const userComp = localStorage.getItem('userComp');
     const storesRef = doc(window.firestore, userComp, 'stores'); // Reference to the "stores" document
 
-    getDoc(storesRef).then(docSnapshot => {
-        const storesList = document.getElementById('stores-list');
-        storesList.innerHTML = '';
+    getDoc(storesRef)
+        .then((docSnapshot) => {
+            const storesList = document.getElementById('stores-list');
+            storesList.innerHTML = '';
 
-        if (docSnapshot.exists()) {
-            const storeData = docSnapshot.data();
+            if (docSnapshot.exists()) {
+                const storeData = docSnapshot.data();
 
-            // Iterate over each field in the "stores" document
-            for (const [field, value] of Object.entries(storeData)) {
-                const storeDiv = document.createElement('div');
-                storeDiv.innerHTML = `${field}: ${value} <button onclick="deleteStore('${field}')">Delete</button> <button onclick="editStore('${field}', '${value}')">Edit</button>`;
-                storesList.appendChild(storeDiv);
+                // Iterate over each field in the "stores" document
+                for (const [field, value] of Object.entries(storeData)) {
+                    const storeDiv = document.createElement('div');
+                    storeDiv.className = 'store-item';
+
+                    storeDiv.innerHTML = `
+                        <span class="store-name">${field}:</span> 
+                        <span class="store-value">${value}</span>
+                        <button class="action-button edit-button" onclick="editStore('${field}', '${value}')">Edit</button>
+                        <button class="action-button delete-button" onclick="deleteStore('${field}')">Delete</button>
+                    `;
+
+                    storesList.appendChild(storeDiv);
+                }
+            } else {
+                storesList.innerHTML = '<p class="no-stores">No stores found.</p>';
             }
-        } else {
-            console.log('No stores document found.');
-        }
-    }).catch(error => {
-        console.error('Error loading stores:', error);
-    });
+        })
+        .catch((error) => {
+            console.error('Error loading stores:', error);
+            const storesList = document.getElementById('stores-list');
+            storesList.innerHTML = '<p class="error-message">Error loading stores. Please try again.</p>';
+        });
 }
 
+window.addStore = function () {
+    const userComp = localStorage.getItem('userComp');
+    const storesRef = doc(window.firestore, userComp, 'stores');
 
-window.addStore = function() {
-        const userComp = localStorage.getItem('userComp');
-        const storesRef = doc(window.firestore, userComp, 'stores');
+    const fieldName = prompt("Enter the store name:");
+    const fieldValue = prompt("Enter the store value:");
 
-        const fieldName = prompt("Enter the store name:");
-        const fieldValue = prompt("Enter the store value:");
+    if (fieldName && fieldValue) {
+        setDoc(storesRef, { [fieldName]: fieldValue }, { merge: true })
+            .then(() => {
+                alert("Store added successfully!");
+                loadStores();
+            })
+            .catch((error) => {
+                console.error("Error adding store:", error);
+                alert("Error adding store. Please try again.");
+            });
+    } else {
+        alert("Store name and value cannot be empty.");
+    }
+};
 
-        if (fieldName && fieldValue) {
-            setDoc(storesRef, { [fieldName]: fieldValue }, { merge: true })
-                .then(() => {
-                    console.log("Store added successfully");
-                    loadStores(); 
-                })
-                .catch(error => {
-                    console.error("Error adding store:", error);
-                });
-        } else {
-            alert("Field name and value cannot be empty.");
-        }
-    };
+window.deleteStore = function (storeId) {
+    const userComp = localStorage.getItem('userComp');
+    const storeRef = doc(window.firestore, userComp, 'stores');
 
-    window.deleteStore = function(storeId) {
-    const userComp = localStorage.getItem('userComp'); // Get the userComp document ID
-    const storeRef = doc(window.firestore, userComp, 'stores'); // Reference to the 'stores' document
+    const confirmed = confirm(`Are you sure you want to delete the store "${storeId}"?`);
+    if (!confirmed) return;
 
     updateDoc(storeRef, {
-        [storeId]: deleteField() // Use deleteField to remove the specific field
+        [storeId]: deleteField(),
     })
         .then(() => {
-            alert('Store deleted successfully!');
-            loadStores(); // Reload the stores after deletion
+            alert("Store deleted successfully!");
+            loadStores();
         })
-        .catch(error => {
-            console.error('Error deleting store:', error);
+        .catch((error) => {
+            console.error("Error deleting store:", error);
+            alert("Error deleting store. Please try again.");
         });
 };
 
-
-window.editStore = function(storeId, currentValue) {
-    const newValue = prompt('Enter new value:', currentValue);
-    if (newValue !== null) {
+window.editStore = function (storeId, currentValue) {
+    const newValue = prompt(`Edit value for "${storeId}":`, currentValue);
+    if (newValue !== null && newValue.trim() !== "") {
         const userComp = localStorage.getItem('userComp');
-        const storeRef = doc(window.firestore, userComp, 'stores'); // Reference to the 'stores' document
+        const storeRef = doc(window.firestore, userComp, 'stores');
 
-        setDoc(storeRef, { [storeId]: newValue }, { merge: true }) // Use merge to update the specific field
+        setDoc(storeRef, { [storeId]: newValue }, { merge: true })
             .then(() => {
-                alert('Store updated successfully!');
-                loadStores(); // Reload the stores after updating
+                alert("Store updated successfully!");
+                loadStores();
             })
-            .catch(error => {
-                console.error('Error updating store:', error);
+            .catch((error) => {
+                console.error("Error updating store:", error);
+                alert("Error updating store. Please try again.");
             });
+    } else {
+        alert("Value cannot be empty.");
     }
 };
 
@@ -310,15 +384,32 @@ window.editStore = function(storeId, currentValue) {
             searchFolder();
         };
 
-        window.goToUploadPage = function() {
-            showPage('upload-page');
-            const userComp = localStorage.getItem('userComp'); 
-            if (userComp) {
-                console.log(`Document found. Comp value: ${userComp}`);
-            } else {
-                console.error('Error: userComp not found in localStorage');
-            }
-        };
+        window.goToUploadPage = function () {
+    // Show the upload page
+    showPage('upload-page');
+
+    // Fetch the "Get Current Data" button
+    const getDataButton = document.getElementById('get-data-button');
+    if (getDataButton) {
+        // Ensure the button is visible
+        getDataButton.style.display = 'inline-block';
+    } else {
+        console.error('Error: "Get Current Data" button not found in the DOM');
+    }
+
+    // Log userComp if available
+    const userComp = localStorage.getItem('userComp');
+    if (userComp) {
+        console.log(`Document found. Comp value: ${userComp}`);
+    } else {
+        console.error('Error: userComp not found in localStorage');
+    }
+
+    // Call the getCurrentData function after the upload page is shown
+    getCurrentData();
+};
+
+
 
         window.goToUsersPage = function() {
             showPage('users-page');
@@ -358,104 +449,124 @@ window.addNewUser = function() {
     // Generate and validate user ID
     function addUserWithUniqueId() {
         const userId = generateUserId(); // Generate user ID
-        
-        // Check if user ID already exists in Firestore
+
         const userRef = doc(passwordsCollection, String(userId));
-        
-        getDoc(userRef).then((docSnapshot) => {
-            if (!docSnapshot.exists()) {
-                // If user ID doesn't exist, add the user
-                setDoc(userRef, {
-                    userId: userId,
-                    name: nameInput,
-                    order: orderCheckbox,
-                    'wrong-price': wrongPriceCheckbox,
-                    return: returnCheckbox,
-                    expired: expiredCheckbox,
-                    'near-expired': nearExpiredCheckbox,
-                    inventory: inventoryCheckbox,
-                    comp: userComp,
-                })
-                .then(() => {
-                    document.getElementById('success').innerHTML = 'User added successfully! User ID: ' + userId;
-                    document.getElementById('error').innerHTML = '';
-                })
-                .catch((error) => {
-                    document.getElementById('error').innerHTML = 'Error adding user: ' + error;
-                });
-            } else {
-                // If the generated user ID already exists, try again
-                addUserWithUniqueId();
-            }
-        }).catch((error) => {
-            document.getElementById('error').innerHTML = 'Error checking user ID: ' + error;
-        });
+
+        getDoc(userRef)
+            .then((docSnapshot) => {
+                if (!docSnapshot.exists()) {
+                    // Add the user if ID is unique
+                    setDoc(userRef, {
+                        userId: userId,
+                        name: nameInput,
+                        order: orderCheckbox,
+                        'wrong-price': wrongPriceCheckbox,
+                        return: returnCheckbox,
+                        expired: expiredCheckbox,
+                        'near-expired': nearExpiredCheckbox,
+                        inventory: inventoryCheckbox,
+                        comp: userComp,
+                    })
+                        .then(() => {
+                            displayMessage(
+                                'success',
+                                `User added successfully! User ID: ${userId}`
+                            );
+                        })
+                        .catch((error) => {
+                            displayMessage(
+                                'error',
+                                `Error adding user: ${error.message}`
+                            );
+                        });
+                } else {
+                    // Retry if user ID already exists
+                    addUserWithUniqueId();
+                }
+            })
+            .catch((error) => {
+                displayMessage('error', `Error checking user ID: ${error.message}`);
+            });
     }
 
-    // Start the process of adding user with a unique ID
+    // Helper function to display messages
+    function displayMessage(type, message) {
+        const successElement = document.getElementById('success');
+        const errorElement = document.getElementById('error');
+
+        if (type === 'success') {
+            successElement.textContent = message;
+            successElement.style.display = 'block';
+            errorElement.style.display = 'none';
+        } else if (type === 'error') {
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+            successElement.style.display = 'none';
+        }
+    }
+
+    // Start the process of adding a user
     addUserWithUniqueId();
 };
 
+window.loadUserDetails = function(userId) {
+    const userRef = doc(firestore, 'passwords', userId);
+    getDoc(userRef)
+        .then((doc) => {
+            if (doc.exists()) {
+                const userDetails = document.getElementById('user-details');
+                userDetails.innerHTML = `<pre>${JSON.stringify(doc.data(), null, 2)}</pre>`;
+                document.getElementById('user-details-page').style.display = 'block';
+            } else {
+                console.error('No such user!');
+            }
+        })
+        .catch((error) => {
+            console.error('Error fetching user details:', error);
+        });
+};
 
+window.generateUniquePassword = function() {
+    // Generate a new 6-digit unique password
+    const min = 100000;
+    const max = 999999;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+};
 
-        window.loadUserDetails = function(userId) {
-            const userRef = doc(firestore, 'passwords', userId);
-            getDoc(userRef)
-                .then((doc) => {
-                    if (doc.exists()) {
-                        const userDetails = document.getElementById('user-details');
-                        userDetails.innerHTML = JSON.stringify(doc.data(), null, 2);
-                        document.getElementById('user-details-page').style.display = 'block';
-                    } else {
-                        console.error('No such user!');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Error fetching user details:', error);
-                });
-        };
+window.showPage = function(pageId) {
+    document.querySelectorAll('.section, #initial-page').forEach((section) => {
+        section.style.display = 'none';
+    });
+    document.getElementById(pageId).style.display = 'block';
+};
 
-        window.generateUniquePassword = function() {
-            // Generate a new 6-digit unique password
-            const min = 100000;
-            const max = 999999;
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        };
+window.updateButtonVisibility = function(userData) {
+    const { order, download, upload, users } = userData;
+    document.getElementById('download-button').style.display = order ? 'block' : 'none';
+    document.getElementById('upload-button').style.display = upload ? 'block' : 'none';
+    document.getElementById('users-button').style.display = users ? 'block' : 'none';
+};
 
-        window.showPage = function(pageId) {
-            document.querySelectorAll('.section, #initial-page').forEach((section) => {
-                section.style.display = 'none';
-            });
-            document.getElementById(pageId).style.display = 'block';
-        };
-
-        window.updateButtonVisibility = function(userData) {
-            const { order, download, upload, users } = userData;
-            document.getElementById('download-button').style.display = download ? 'block' : 'none';
-            document.getElementById('upload-button').style.display = upload ? 'block' : 'none';
-            document.getElementById('users-button').style.display = users ? 'block' : 'none';
-        };
-
-        window.deleteUser = function() {
+window.deleteUser = function() {
     const userId = localStorage.getItem('selectedUserId');
     if (!userId) {
         alert('No user selected.');
         return;
     }
 
-    const userRef = doc(window.firestore, 'passwords', userId);
+    const userRef = doc(firestore, 'passwords', userId);
     deleteDoc(userRef)
         .then(() => {
             alert('User deleted successfully.');
             backToUsers(); // Navigate back to the users page
         })
         .catch((error) => {
-            alert('Error deleting user: ' + error.message);
+            alert(`Error deleting user: ${error.message}`);
             console.error('Error deleting user:', error);
         });
 };
 
-window.searchFolder = async function() {
+window.searchFolder = async function () {
     const userComp = localStorage.getItem('userComp');
     const folderRef = ref(storage, `/${userComp}`); // Updated path
     const resultsDiv = document.getElementById('results');
@@ -465,29 +576,61 @@ window.searchFolder = async function() {
 
     try {
         const folderList = await listAll(folderRef);
-        folderList.prefixes.forEach((folder) => {
-            const folderName = folder.name.split('/').slice(-1)[0];
-            const folderLink = document.createElement('a');
-            folderLink.textContent = folderName;
-            folderLink.href = '#';
-            folderLink.onclick = () => loadFiles(folder.name);
-            const folderItem = document.createElement('div');
-            folderItem.appendChild(folderLink);
-            resultsDiv.appendChild(folderItem);
-        });
 
         if (folderList.prefixes.length === 0) {
-            resultsDiv.innerHTML = 'No folders found.';
+            resultsDiv.innerHTML = `
+                <div class="empty-state">
+                    <p>No folders found.</p>
+                </div>
+            `;
+            return;
         }
+
+        // Create a container for the folder list
+        const folderContainer = document.createElement('div');
+        folderContainer.className = 'folder-container';
+
+        folderList.prefixes.forEach((folder) => {
+            const folderName = folder.name.split('/').slice(-1)[0];
+
+            // Create a styled folder card
+            const folderCard = document.createElement('div');
+            folderCard.className = 'folder-card';
+
+            const folderIcon = document.createElement('div');
+            folderIcon.className = 'folder-icon';
+            folderIcon.innerHTML = '📁'; // Folder emoji or use an icon
+
+            const folderNameText = document.createElement('div');
+            folderNameText.className = 'folder-name';
+            folderNameText.textContent = folderName;
+
+            const folderLink = document.createElement('a');
+            folderLink.className = 'folder-link';
+            folderLink.href = '#';
+            folderLink.onclick = () => loadFiles(folder.name);
+            folderLink.appendChild(folderIcon);
+            folderLink.appendChild(folderNameText);
+
+            folderCard.appendChild(folderLink);
+            folderContainer.appendChild(folderCard);
+        });
+
+        resultsDiv.appendChild(folderContainer);
     } catch (error) {
         console.error('Error listing folders:', error);
-        resultsDiv.innerHTML = 'Error loading folders.';
+        resultsDiv.innerHTML = `
+            <div class="error-state">
+                <p>Error loading folders. Please try again.</p>
+            </div>
+        `;
     }
 };
 
 
 
-window.loadFiles = async function(folderName) {
+
+window.loadFiles = async function (folderName) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = ''; 
 
@@ -499,9 +642,30 @@ window.loadFiles = async function(folderName) {
 
     try {
         const fileList = await listAll(folderRef);
+
+        if (fileList.items.length === 0) {
+            resultsDiv.innerHTML = `
+                <div class="empty-state">
+                    <p>No files found in this folder.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Create a container for the file list
+        const fileContainer = document.createElement('div');
+        fileContainer.className = 'file-container';
+
         fileList.items.forEach((fileRef) => {
             const fileName = fileRef.name.split('/').slice(-1)[0];
+
+            // Create a file card
+            const fileCard = document.createElement('div');
+            fileCard.className = 'file-card';
+
+            // File name as a clickable link
             const downloadLink = document.createElement('a');
+            downloadLink.className = 'file-link';
             downloadLink.textContent = fileName;
             downloadLink.href = '#';
             downloadLink.onclick = async () => {
@@ -509,46 +673,97 @@ window.loadFiles = async function(folderName) {
                 window.open(url);
             };
 
+            // Delete button
             const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-button';
             deleteButton.textContent = 'Delete';
             deleteButton.onclick = () => deleteFile(fileRef);
 
-            const fileItem = document.createElement('div');
-            fileItem.appendChild(downloadLink);
-            fileItem.appendChild(deleteButton);
-            resultsDiv.appendChild(fileItem);
+            fileCard.appendChild(downloadLink);
+            fileCard.appendChild(deleteButton);
+            fileContainer.appendChild(fileCard);
         });
 
-        if (fileList.items.length === 0) {
-            resultsDiv.innerHTML = 'No files found in this folder.';
-        }
+        resultsDiv.appendChild(fileContainer);
     } catch (error) {
         console.error('Error loading files:', error);
-        resultsDiv.innerHTML = 'Error loading files.';
+        resultsDiv.innerHTML = `
+            <div class="error-state">
+                <p>Error loading files. Please try again.</p>
+            </div>
+        `;
+    }
+};
+
+window.deleteFile = async function (fileRef) {
+    const confirmed = confirm(`Are you sure you want to delete ${fileRef.name}?`);
+    if (!confirmed) return;
+
+    try {
+        await deleteObject(fileRef);
+        alert(`${fileRef.name} deleted successfully.`);
+        loadFiles(fileRef.parent.fullPath); // Reload files after deletion
+    } catch (error) {
+        console.error('Error deleting file:', error);
+        alert('Error deleting file.');
     }
 };
 
 
 
+a// Function to show the upload page
+function showUploadPage() {
+  const uploadPage = document.getElementById('upload-page');
+  const usersPage = document.getElementById('users-page');
+  const getDataButton = document.getElementById('get-data-button');
 
+  // Display the upload page and the button
+  uploadPage.style.display = 'block';
+  usersPage.style.display = 'none';
+  getDataButton.style.display = 'inline-block';
+}
 
-        window.deleteFile = async function(fileRef) {
-            const confirmed = confirm(`Are you sure you want to delete ${fileRef.name}?`);
-            if (!confirmed) return;
+// Function to hide the upload page
+function hideUploadPage() {
+  const uploadPage = document.getElementById('upload-page');
+  const getDataButton = document.getElementById('get-data-button');
 
-            try {
-                await deleteObject(fileRef);
-                alert(`${fileRef.name} deleted successfully.`);
-                loadFiles(fileRef.parent.fullPath); // Reload files after deletion
-            } catch (error) {
-                console.error('Error deleting file:', error);
-                alert('Error deleting file.');
-            }
-        };
+  // Hide the upload page and the button
+  uploadPage.style.display = 'none';
+  getDataButton.style.display = 'none';
+}
 
+// Show the upload page and its "Get Current Data" button
+window.goToUploadPage = function () {
+  // Show the upload page
+  showUploadPage();
 
+  // Fetch the "Get Current Data" button
+  const getDataButton = document.getElementById('get-data-button');
+  if (getDataButton) {
+    // Ensure the button is visible
+    getDataButton.style.display = 'inline-block';
+  } else {
+    console.error('Error: "Get Current Data" button not found in the DOM');
+  }
 
-        async function handleDrop(event) {
+  // Log userComp if available
+  const userComp = localStorage.getItem('userComp');
+  if (userComp) {
+    console.log(`Document found. Comp value: ${userComp}`);
+  } else {
+    console.error('Error: userComp not found in localStorage');
+  }
+};
+
+// Back to choice page
+function backToChoice() {
+  // Show the "choice-page" (or whatever page you want to go back to)
+  showPage('choice-page');
+}
+
+// Handle file drag and drop
+async function handleDrop(event) {
   event.preventDefault();
 
   const dropArea = document.getElementById('drop-area');
@@ -616,38 +831,63 @@ window.loadFiles = async function(folderName) {
   }
 }
 
-async function createDocument(folderName, sheetData, docId) {
-  try {
-    // Log the collection name for debugging purposes
-    console.log('Attempting to create document in collection:', folderName);
-
-    // Reference to the Firestore collection
-    const colRef = collection(db, folderName);
-
-    // Set the document in Firestore with a specific ID
-    const docRef = await setDoc(doc(colRef, docId), sheetData);
-    console.log('Document successfully created with ID:', docId);
-  } catch (error) {
-    console.error('Error creating document:', error);
+// Function to fetch data and generate Excel
+async function getCurrentData() {
+  const folderName = localStorage.getItem('userComp');
+  if (!folderName) {
+    alert('Please enter a folder name');
+    return;
   }
+
+  const colRef = collection(db, folderName);
+  const querySnapshot = await getDocs(colRef);
+
+  // Initialize an array to store the rows
+  const rows = [];
+
+  // Add the header row
+  rows.push(["BARCODE", "NAME", "PRICE", "PICTURE"]);
+
+  // Loop through each document and add data rows
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    rows.push([
+      data.barcode || '',  // Barcode (Cell A)
+      data.name || '',      // Name (Cell B)
+      data.price || 0,      // Price (Cell C)
+      data.pic || '',       // Picture (Cell D)
+    ]);
+  });
+
+  // Create a worksheet from the rows data
+  const worksheet = XLSX.utils.aoa_to_sheet(rows);
+  const workbook = XLSX.utils.book_new();
+
+  // Append the worksheet to the workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Current Data");
+
+  // Generate a file name with timestamp
+  const timestamp = new Date().toISOString().replace(/[-:.]/g, "_");
+  const fileName = `Current_Data_${timestamp}.xlsx`;
+
+  // Write and download the Excel file
+  XLSX.writeFile(workbook, fileName);
+
+  alert("Excel file created successfully!");
 }
 
-
-
-
-
-  // Dragover event to allow file drop
-  function handleDragOver(event) {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'copy';
-  }
-
-  // Set up event listeners for the drag and drop functionality
-  window.onload = function () {
-    const dropArea = document.getElementById('drop-area');
+// Set up event listeners for navigation
+window.onload = function () {
+  const dropArea = document.getElementById('drop-area');
+  if (dropArea) {
     dropArea.addEventListener('dragover', handleDragOver);
     dropArea.addEventListener('drop', handleDrop);
-  };
+  }
+};
+
+
+
+
 
     
 function loadUsersPage() {
