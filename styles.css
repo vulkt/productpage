@@ -1,1 +1,710 @@
+/* General Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Container Styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+/* Page Styles */
+#initial-page, #choice-page, #download-page, #upload-page, #users-page {
+    display: none; /* Hide all pages initially */
+}
+
+#initial-page {
+    display: block; /* Show initial page by default */
+}
+
+/* Buttons */
+button, .button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    background-color: #007bff;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 10px 0;
+    transition: background-color 0.3s, transform 0.2s;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+button:hover, .button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+button:active, .button:active {
+    background-color: #004494;
+    transform: translateY(0);
+}
+
+/* Form Inputs */
+input[type="text"], input[type="checkbox"], select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin: 5px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+input[type="checkbox"] {
+    width: auto;
+    margin-right: 10px;
+}
+
+select {
+    font-size: 16px;
+}
+
+/* Error Messages */
+#error-message {
+    color: #d9534f;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+/* Page Sections */
+.section {
+    margin-bottom: 30px;
+}
+
+/* Results Area */
+#results, #upload-results, #user-results {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+/* Drop Area */
+#drop-area {
+    border: 2px dashed #007bff;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #e9ecef;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+#drop-area:hover {
+    background-color: #dee2e6;
+    border-color: #0056b3;
+}
+.button-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    height: 100vh;           /* Full viewport height */
+}
+
+.button-container button {
+    margin: 10px;           /* Space between buttons */
+}
+
+
+/* File Links */
+a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Dividers */
+hr {
+    border: 0;
+    border-top: 1px solid #ddd;
+    margin: 30px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+    button, .button {
+        width: 100%;
+    }
+}
+/* Styling the folder container */
+.folder-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+/* Styling each folder card */
+.folder-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+}
+
+/* Hover effect for folder cards */
+.folder-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+}
+
+/* Folder icon */
+.folder-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Folder name */
+.folder-name {
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Error state styling */
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    color: #d9534f; /* Bootstrap danger red */
+    font-size: 1.2rem;
+}
+
+/* Styling the file container */
+.file-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+}
+
+/* Styling each file card */
+.file-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Hover effect for file cards */
+.file-card:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+/* File link */
+.file-link {
+    text-decoration: none;
+    color: #007bff;
+    font-size: 1rem;
+    flex-grow: 1;
+    margin-right: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Delete button */
+.delete-button {
+    background-color: #d9534f;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #c9302c;
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* Error state styling */
+.error-state {
+    text-align: center;
+    padding: 2rem;
+    color: #d9534f; /* Bootstrap danger red */
+    font-size: 1.2rem;
+}
+/* General styling for the container */
+#stores-list {
+    margin: 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Styling for each store item */
+.store-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease;
+}
+
+.store-item:hover {
+    background-color: #f0f8ff;
+}
+
+/* Store name and value styling */
+.store-name {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #333;
+}
+
+.store-value {
+    color: #555;
+}
+
+/* Action buttons */
+.action-button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.edit-button {
+    background-color: #f0ad4e;
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #ec971f;
+}
+
+.delete-button {
+    background-color: #d9534f;
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c9302c;
+}
+
+/* Empty and error states */
+.no-stores,
+.error-message {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+}
+/* General Styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+/* Success and Error Messages */
+#success, #error {
+    font-size: 1rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    border-radius: 5px;
+    display: none;
+}
+
+#success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+#error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* User Details Section */
+#user-details {
+    background-color: #fff;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-width: 600px;
+    margin: 1rem auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+#user-details pre {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+}
+
+/* Buttons */
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* Navigation Buttons */
+#download-button, #upload-button, #users-button {
+    display: none;
+    margin: 0.5rem;
+}
+
+/* Sections and Pages */
+.section {
+    display: none;
+    padding: 1rem;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 1rem auto;
+}
+
+/* Form Inputs */
+input[type="text"], input[type="checkbox"] {
+    margin: 0.5rem 0;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+input[type="checkbox"] {
+    margin-right: 0.5rem;
+}
+
+/* Alerts */
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+/* Container for Add User Page */
+.container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Page Title */
+.page-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+/* Form Group */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Form Label */
+.form-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+/* Input Fields */
+.form-input {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.checkbox-label {
+    font-size: 0.95rem;
+    color: #555;
+    cursor: pointer;
+}
+
+/* Actions (Buttons) */
+.form-actions {
+    text-align: center;
+    margin-top: 1.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Feedback Messages */
+.message {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.error-message {
+    color: #e74c3c;
+}
+
+.success-message {
+    color: #28a745;
+}
+
+/* General Container */
+.container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+}
+
+/* Page Title */
+.page-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+/* Search Bar */
+.search-bar {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar .form-input {
+    width: 100%;
+    max-width: 500px;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+}
+
+.search-bar .form-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* User Results */
+.results-list {
+    margin-top: 1.5rem;
+    border-top: 1px solid #ddd;
+    padding-top: 1rem;
+    min-height: 100px;
+    text-align: center;
+    color: #555;
+}
+
+/* Action Buttons */
+.form-actions {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+    margin: 0 0.5rem;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Centering the container for buttons */
+.buttons-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px; /* Adds space from the drop area */
+}
+
+/* Styling for the Back Button */
+.back-button {
+    display: block;
+    margin: 20px auto 0; /* Center the button and add space from the success message */
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.back-button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for Action Buttons */
+.action-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.action-button:hover {
+    background-color: #0056b3;
+}
+
+/* Styling for Success Message */
+#upload-results {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 16px;
+    color: green;
+}
 
